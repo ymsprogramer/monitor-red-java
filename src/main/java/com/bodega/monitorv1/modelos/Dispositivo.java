@@ -9,13 +9,15 @@ package com.bodega.monitorv1.modelos;
  * @author Yordin
  */
 public class Dispositivo {
-    private String ip ;
 
-    private int id ;
+    private String ip;
+    private String mac;
+    private int id;
 
     public Dispositivo() {
         this.ip = ip;
-        this.id = id ;
+        this.id = id;
+        this.mac = mac;
     }
 
     public String getIp() {
@@ -26,8 +28,6 @@ public class Dispositivo {
         this.ip = ip;
     }
 
-
-
     public int getId() {
         return id;
     }
@@ -36,10 +36,20 @@ public class Dispositivo {
         this.id = id;
     }
 
+    public String getMac() {
+        return mac;
+    }
+
+    public void setMac(String mac) {
+        this.mac = mac;
+    }
+
     @Override
     public String toString() {
-        return "Dispositivo{" + "ip=" + ip + ", id=" + id + '}';
+        return "Dispositivo{" + "ip=" + ip + ", mac=" + mac + ", id=" + id + '}';
     }
     
-    
+
+ 
+
 }

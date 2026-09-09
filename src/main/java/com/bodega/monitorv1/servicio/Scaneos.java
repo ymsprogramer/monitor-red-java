@@ -13,7 +13,6 @@ import java.io.InputStreamReader;
 import com.bodega.monitorv1.modelos.Dispositivo;
 import com.bodega.monitorv1.repository.Repository;
 import java.net.InetAddress;
-import java.net.Inet4Address;
 import java.net.UnknownHostException;
 import java.io.IOException;
 import java.net.Inet4Address;
