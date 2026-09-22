@@ -15,9 +15,8 @@ import java.util.*;
 
 public class EscanerIpControlador implements mostrarDispositivos {
 
+    private boolean escaneoIpRealizado = false;
 
-    private  boolean escaneoIpRealizado = false;
-    
     private final static Scanner in = new Scanner(System.in);
 
     private ScannerIpServicio servicio;
@@ -26,31 +25,28 @@ public class EscanerIpControlador implements mostrarDispositivos {
         this.servicio = servicio;
 
     }
-    
-    public EscanerIpControlador ( boolean escaneoIpRealizado ){
-    
-       this.escaneoIpRealizado = escaneoIpRealizado ;
+
+    public EscanerIpControlador(boolean escaneoIpRealizado) {
+
+        this.escaneoIpRealizado = escaneoIpRealizado;
     }
 
     public EscanerIpControlador() {
     }
 
-    public void  redEscaneoip() throws IOException, Exception {
-        
-     boolean respuesta = servicio.EscaneoIp();
+    public void redEscaneoip() throws IOException, Exception {
+
+        boolean respuesta = servicio.EscaneoIp();
 
         if (respuesta) {
 
-            System.out.println(" Escaneo finalizado con éxito sobre la red : "+ servicio.IpDetectada()+ "/ " + servicio.prefijos() );
-            
-            
+            System.out.println(" Escaneo finalizado con éxito sobre la red : " + servicio.IpDetectada() + "/ " + servicio.prefijos());
+            escaneoIpRealizado = true;
+
         } else {
             System.out.println(" error al intentar esacnnear ip no valida  ");
-            
-            
+
         }
-        
-       escaneoIpRealizado = true ;
 
     }
 
@@ -58,10 +54,10 @@ public class EscanerIpControlador implements mostrarDispositivos {
     public void mostrarDispositivos() {
 
         Map<Integer, Dispositivo> dispositivos = servicio.obtenerDispositivos();
-        
-        if (dispositivos.isEmpty()){
-        System.out.println("no se ha hecho nigun escaneo de IP ");
-        return;
+
+        if (dispositivos.isEmpty()) {
+            System.out.println("no se ha hecho ningun escaneo de IP ");
+            return;
         }
 
         for (Map.Entry<Integer, Dispositivo> u : dispositivos.entrySet()) {
@@ -75,7 +71,6 @@ public class EscanerIpControlador implements mostrarDispositivos {
             );
         }
     }
-    
 
     public boolean isEscaneoIpRealizado() {
         return escaneoIpRealizado;
@@ -84,7 +79,5 @@ public class EscanerIpControlador implements mostrarDispositivos {
     public void setEscaneoIpRealizado(boolean escaneoIpRealizado) {
         this.escaneoIpRealizado = escaneoIpRealizado;
     }
-
-
 
 }

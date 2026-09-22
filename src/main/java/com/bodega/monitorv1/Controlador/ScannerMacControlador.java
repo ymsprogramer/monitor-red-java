@@ -16,19 +16,31 @@ import java.util.Map;
 public class ScannerMacControlador implements mostrarDispositivos {
 
     private ScannerMacServicio servicio;
+    
+    private boolean MacscannerRealizado = false;
    
 
     public ScannerMacControlador(ScannerMacServicio servicio) {
         this.servicio = servicio;
 
     }
+    
+    public ScannerMacControlador (boolean MacscannerRealizado){
+        this.MacscannerRealizado =  MacscannerRealizado;
+    
+    }
+    
+    
+    
 
-    public void RedScaneoMac() throws Exception {
+    public void  RedScaneoMac() throws Exception {
 
         boolean p = servicio.escanearMacs();
 
         if (p) {
+            
             System.out.println(" Scaneo de mac relaizado con exito ");
+            MacscannerRealizado = true ;
         }
 
     }
@@ -51,8 +63,21 @@ public class ScannerMacControlador implements mostrarDispositivos {
             System.out.println(
                     "ID: " + id
                     + " | IP: " + dispositivo.getIp()
-                    + " MAC" + mac
+                    + " MAC: " + mac
             );
         }
+        
     }
+
+
+
+    public boolean isMacscannerRealizado() {
+        return MacscannerRealizado;
+    }
+
+    public void setMacscannerRealizado(boolean MacscannerRealizado) {
+        this.MacscannerRealizado = MacscannerRealizado;
+    }
+
+ 
 }

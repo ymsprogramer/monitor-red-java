@@ -15,10 +15,9 @@ public class Dispositivo {
     private int id;
 
     public Dispositivo() {
-        this.ip = ip;
-        this.id = id;
-        this.mac = mac;
     }
+
+ 
 
     public String getIp() {
         return ip;
