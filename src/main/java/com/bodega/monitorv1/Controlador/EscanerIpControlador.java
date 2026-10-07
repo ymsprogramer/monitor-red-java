@@ -11,6 +11,9 @@ package com.bodega.monitorv1.Controlador;
 import com.bodega.monitorv1.modelos.Dispositivo;
 import com.bodega.monitorv1.servicio.ScannerIpServicio;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import java.util.*;
 
 public class EscanerIpControlador implements mostrarDispositivos {
@@ -40,7 +43,7 @@ public class EscanerIpControlador implements mostrarDispositivos {
 
         if (respuesta) {
 
-            System.out.println(" Escaneo finalizado con éxito sobre la red : " + servicio.IpDetectada() + "/ " + servicio.prefijos());
+            System.out.println(" Escaneo finalizado con exito sobre la red : " + servicio.IpDetectada() + "/ " + servicio.prefijos());
             escaneoIpRealizado = true;
 
         } else {
@@ -64,10 +67,14 @@ public class EscanerIpControlador implements mostrarDispositivos {
 
             Integer id = u.getKey();
             Dispositivo dispositivo = u.getValue();
+            LocalDateTime hora = dispositivo.getFechaDeteccion();
+            DateTimeFormatter formato
+                    = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
             System.out.println(
                     "ID: " + id
                     + " | IP: " + dispositivo.getIp()
+                    + " | FECHA " + hora.format(formato)
             );
         }
     }

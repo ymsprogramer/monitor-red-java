@@ -37,7 +37,7 @@ public class ScannerMacServicio {
     public boolean escanearMacs() throws Exception {
 
         PcapNetworkInterface interfaz = config.obtenerInterfaz();
-
+      
         MacAddress macLocal = null;
 
         for (LinkLayerAddress direccion : interfaz.getLinkLayerAddresses()) {
@@ -113,7 +113,11 @@ public class ScannerMacServicio {
                             MacAddress macEncontrada
                                     = respuesta.getHeader().getSrcHardwareAddr();
 
-                            dispositivo.setMac(macEncontrada.toString());
+                            String mac_encontrada = macEncontrada.toString();
+
+                            dispositivo.setMac(mac_encontrada);
+
+                            repo.guardarMacs(dispositivo);
 
                             encontrado = true;
                         }
@@ -124,12 +128,8 @@ public class ScannerMacServicio {
 
                     encontrado = true;
 
-                    if (dispositivo.getMac() == null) {
-                        dispositivo.setMac("no encontrado");
-                    }
                 }
             }
-                    
 
         }
         return true;

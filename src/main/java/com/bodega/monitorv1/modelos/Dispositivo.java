@@ -2,7 +2,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
+
 package com.bodega.monitorv1.modelos;
+import java.time.LocalDateTime;
 
 /**
  *
@@ -13,6 +15,8 @@ public class Dispositivo {
     private String ip;
     private String mac;
     private int id;
+    private LocalDateTime fechaDeteccion;
+    private String sobrenombre ;
 
     public Dispositivo() {
     }
@@ -43,12 +47,28 @@ public class Dispositivo {
         this.mac = mac;
     }
 
+    public LocalDateTime getFechaDeteccion() {
+        return fechaDeteccion;
+    }
+
+    public void setFechaDeteccion(LocalDateTime fechaDeteccion) {
+        this.fechaDeteccion = fechaDeteccion;
+    }
+
+    public String getSobrenombre() {
+        return sobrenombre;
+    }
+
+    public void setSobrenombre(String sobrenombre) {
+        this.sobrenombre = sobrenombre;
+    }
+
     @Override
     public String toString() {
-        return "Dispositivo{" + "ip=" + ip + ", mac=" + mac + ", id=" + id + '}';
+        return "Dispositivo{" + "ip=" + ip + ", mac=" + mac + ", id=" + id + ", fechaDeteccion=" + fechaDeteccion + ", sobrenombre=" + sobrenombre + '}';
     }
     
 
- 
+  
 
 }

@@ -7,6 +7,8 @@ package com.bodega.monitorv1.Controlador;
 import com.bodega.monitorv1.modelos.Dispositivo;
 import com.bodega.monitorv1.repository.DispositivoRepository;
 import com.bodega.monitorv1.servicio.ScannerMacServicio;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 /**
@@ -59,11 +61,16 @@ public class ScannerMacControlador implements mostrarDispositivos {
             Integer id = u.getKey();
             Dispositivo dispositivo = u.getValue();
             String mac = dispositivo.getMac();
+             LocalDateTime hora =  dispositivo.getFechaDeteccion();
+             DateTimeFormatter formato
+                    = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
             System.out.println(
                     "ID: " + id
                     + " | IP: " + dispositivo.getIp()
                     + " MAC: " + mac
+                     +
+                            " | FECHA " + hora.format(formato)
             );
         }
         

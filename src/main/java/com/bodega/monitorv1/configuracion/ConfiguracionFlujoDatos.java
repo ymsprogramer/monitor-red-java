@@ -18,6 +18,7 @@ public class ConfiguracionFlujoDatos {
 
     private final DispositivoRepository repo;
     private final DispositivoRepositoryBD repobd;
+   
 
     public ConfiguracionFlujoDatos(DispositivoRepository repo, DispositivoRepositoryBD repobd) {
         this.repo = repo;
@@ -41,10 +42,5 @@ public class ConfiguracionFlujoDatos {
     }
     
     
-    public void flujoguardar() throws SQLException{
-    repobd.guardar();
-    }
-
-
 
 }

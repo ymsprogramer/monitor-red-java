@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.time.LocalDateTime;
 import java.util.Map;
 import org.pcap4j.core.PcapNetworkInterface;
 
@@ -53,11 +54,15 @@ public class ScannerIpServicio {
                 boolean respuesta = dirreccion.isReachable(500);
 
                 if (respuesta) {
-                    Dispositivo nuevo = new Dispositivo();
-                    nuevo.setIp(ipv4.getHostAddress());
-                    nuevo.setId(i);
+                    Dispositivo temporal  = new Dispositivo();
+                    temporal.setIp(ipv4.getHostAddress());
+                    temporal.setId(i);
+                    
+                    temporal.setSobrenombre(" temporal ");
+                    LocalDateTime hora_detteccion = LocalDateTime.now();
+                    temporal.setFechaDeteccion(hora_detteccion );
 
-                    repo.guardarmap(i, nuevo);
+                    repo.guardarmap(i,temporal);
 
                 }
 
