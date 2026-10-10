@@ -36,9 +36,10 @@ public class Monitorv1 {
         DispositivoRepositoryBD repo_bd = new DispositivoRepositoryBD(repo_map, repo_cambios);
         ConfiguracionFlujoDatos flujocon = new ConfiguracionFlujoDatos(repo_map, repo_bd);
 
-        ScannerIpServicio servicioip = new ScannerIpServicio(repo_map, config);
-        ScannerMacServicio servicioMac = new ScannerMacServicio(repo_map, config);
         ManejoTemporales Manejoregistros = new ManejoTemporales(repo_map, repo_cambios);
+        ScannerIpServicio servicioip = new ScannerIpServicio(repo_map, config ,Manejoregistros );
+        ScannerMacServicio servicioMac = new ScannerMacServicio(repo_map, config);
+        
 
         Scaneos scan = new Scaneos();
 
@@ -49,7 +50,8 @@ public class Monitorv1 {
         boolean respuestam1 = false;
         boolean respuestam2 = false;
         do {
-            System.out.println("-----configuracin de conexion de base de datos ---------");
+            System.out.println("");
+            System.out.println("-----configuracion de conexion a la  base de datos ---------");
             System.out.println(" 1 : hacer coneccion con la base de datos  ");
             System.out.println(" 2 : no hacer coneccion con la base de datos  ");
             System.out.println(" 0 : salir de la aplicacion ");
@@ -63,6 +65,8 @@ public class Monitorv1 {
                     if (flujocon.flujocarga()) {
 
                         System.out.println("los datos han sido cargados correctamente de la base de datos");
+                     
+                        
                     } else {
                         System.out.println("no se han encontardo datos en la base de datos");
                     }
@@ -192,6 +196,9 @@ public class Monitorv1 {
                 case 1 -> {
 
                     ipscanner.redEscaneoip();
+                    if (ipscanner.isEscaneoIpRealizado()){
+                        
+                    }
 
                     break;
                 }

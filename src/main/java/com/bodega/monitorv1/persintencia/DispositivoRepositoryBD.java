@@ -84,11 +84,10 @@ public class DispositivoRepositoryBD {
                 dispositivo.setFechaDeteccion(fecha);
 
                 repo.guardarmap(id, dispositivo);
-                repo.guardarMacs(dispositivo);   
+                repo.guardarMacs(dispositivo);
             }
         }
     }
-    
 
     public void actualizar(Dispositivo d) {
 
@@ -161,33 +160,26 @@ public class DispositivoRepositoryBD {
             return cantidad > 0;
         }
     }
-    
-    /*
-    public void LimpiarContenidoAguardar(){
-    
-    Map< Integer ,Dispositivo > dispositivos = repo.obtenertodos();
-    
-    for (var eliminar : dispositivos.entrySet() ){
-    
-        if( eliminar.getValue().getMac()== null ){}
-                
-        int id = eliminar.getValue().getId();
-        
-        cambios.EliminarGuardar(id);
-       
-        
+
+    public void limpiarDispositivosSinMac() {
+
+        Map<Integer, Dispositivo> dispositivos = repo.obtenertodos();
+
+        for (var entrada : dispositivos.entrySet()) {
+            Dispositivo dispositivo = entrada.getValue();
+
+           
+            if (dispositivo.getMac() == null || dispositivo.getMac().isEmpty()) {
+                int id = dispositivo.getId();
+                cambios.agregarEliminacion(id); 
+            }
+        }
+
     }
-    
-    
-    
-    
-     LimpiarContenidoAguardar();
-    
-    }
-*/
+
     public void sincronizar() throws SQLException {
-        
-       
+
+        limpiarDispositivosSinMac();
 
         System.out.println("Pendientes para guardar: "
                 + cambios.obtenerDispositivosParaGuardar().size());

@@ -9,5 +9,5 @@ package com.bodega.monitorv1.modelos;
  * @author yordin
  */
 public class Conexion {
-    
+   
 }

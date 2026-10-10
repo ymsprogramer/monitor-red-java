@@ -6,6 +6,7 @@ package com.bodega.monitorv1.servicio;
 
 import com.bodega.monitorv1.Controlador.EscanerIpControlador;
 import com.bodega.monitorv1.configuracion.ConfiguracionRed;
+import com.bodega.monitorv1.configuracion.ManejoTemporales;
 import com.bodega.monitorv1.modelos.Dispositivo;
 import com.bodega.monitorv1.repository.DispositivoRepository;
 import java.io.IOException;
@@ -25,10 +26,12 @@ public class ScannerIpServicio {
 
     private DispositivoRepository repo;
     private ConfiguracionRed config ;
+    private ManejoTemporales Manejo;
 
-    public ScannerIpServicio(DispositivoRepository repo , ConfiguracionRed config  ) {
+    public ScannerIpServicio(DispositivoRepository repo , ConfiguracionRed config , ManejoTemporales Manejo  ) {
         this.repo = repo;
         this.config =  config ;
+        this.Manejo= Manejo ;
 
     }
 
@@ -56,15 +59,19 @@ public class ScannerIpServicio {
                 if (respuesta) {
                     Dispositivo temporal  = new Dispositivo();
                     temporal.setIp(ipv4.getHostAddress());
-                    temporal.setId(i);
+                    int id = Manejo.generarIdLibre(i);
+                    temporal.setId(id);
                     
                     temporal.setSobrenombre(" temporal ");
                     LocalDateTime hora_detteccion = LocalDateTime.now();
                     temporal.setFechaDeteccion(hora_detteccion );
 
-                    repo.guardarmap(i,temporal);
+                    repo.guardarmap(id ,temporal);
+                    
 
                 }
+                
+                
 
             } else {
 
@@ -73,6 +80,7 @@ public class ScannerIpServicio {
             }
 
         }
+        
         return true;
     }
 

@@ -7,8 +7,11 @@ package com.bodega.monitorv1.configuracion;
 import com.bodega.monitorv1.modelos.Dispositivo;
 import com.bodega.monitorv1.repository.DispositivoRepository;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 
 /**
  *
@@ -18,10 +21,12 @@ public class ManejoTemporales {
 
     private DispositivoRepository repo;
     private CambiosPendientes cambios;
+    private Set<Integer> IDS;
 
     public ManejoTemporales(DispositivoRepository repo, CambiosPendientes cambios) {
         this.cambios = cambios;
         this.repo = repo;
+        this.IDS = new HashSet();
     }
 
     public boolean manejo_temporales() {
@@ -101,7 +106,7 @@ public class ManejoTemporales {
 
             Dispositivo oficial = registros.getValue();
 
-            Dispositivo d = repo.obtenerDispositivoId(id);
+            Dispositivo d = repo.obtenerDispositivoPorId(id);
 
             d.setIp(oficial.getIp());
             d.setFechaDeteccion(oficial.getFechaDeteccion());
@@ -131,4 +136,26 @@ public class ManejoTemporales {
 
     }
 
+    
+
+    public int generarIdLibre(int id) {
+
+        if (repo.CantidadDispositivos() >= 255) {
+            throw new IllegalStateException("No quedan IDs disponibles");
+        }
+
+        if (repo.obtenerDispositivoPorId(id) == null) {
+            return id;
+        }
+
+        Random r = new Random();
+
+        while (true) {
+            int nuevoId = r.nextInt(255) + 1;
+
+            if (repo.obtenerDispositivoPorId(nuevoId) == null) {
+                return nuevoId;
+            }
+        }
+    }
 }

@@ -66,11 +66,17 @@ public class DispositivoRepository {
     
     }
     
-    public Dispositivo obtenerDispositivoId( int id ){
+    public Dispositivo obtenerDispositivoPorId( int id ){
         
      Dispositivo dispositivo =  dispositivos.get(id);
         
      return dispositivo;
+    }
+
+    public int CantidadDispositivos () {
+        
+        
+      return dispositivos.size();
     }
     
     
