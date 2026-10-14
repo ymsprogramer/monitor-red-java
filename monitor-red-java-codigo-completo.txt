@@ -1,0 +1,1839 @@
+Monitor Red Java - Código completo
+==================================
+Repositorio: ymsprogramer/monitor-red-java
+
+// ============================================================
+// FILE: src/main/java/com/bodega/monitorv1/Monitorv1.java
+// ============================================================
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ */
+package com.bodega.monitorv1;
+
+import com.bodega.monitorv1.Controlador.EscanerIpControlador;
+import com.bodega.monitorv1.Controlador.ScannerMacControlador;
+import com.bodega.monitorv1.configuracion.CambiosPendientes;
+import com.bodega.monitorv1.configuracion.ConfiguracionFlujoDatos;
+import com.bodega.monitorv1.configuracion.ConfiguracionRed;
+import com.bodega.monitorv1.configuracion.DatosEntrada;
+import com.bodega.monitorv1.configuracion.ManejoTemporales;
+import com.bodega.monitorv1.persintencia.DispositivoRepositoryBD;
+import com.bodega.monitorv1.repository.DispositivoRepository;
+import com.bodega.monitorv1.servicio.Scaneos;
+import com.bodega.monitorv1.servicio.ScannerIpServicio;
+import com.bodega.monitorv1.servicio.ScannerMacServicio;
+import java.io.IOException;
+
+/**
+ *
+ * @author Yordin
+ */
+
+public class Monitorv1 {
+
+    public static void main(String[] args) throws IOException, Exception {
+        
+        System.out.println("Hello World!");
+
+        DatosEntrada verficador = new DatosEntrada();
+        ConfiguracionRed config = new ConfiguracionRed();
+        DispositivoRepository repo_map = new DispositivoRepository();
+        CambiosPendientes repo_cambios = new CambiosPendientes();
+
+        DispositivoRepositoryBD repo_bd = new DispositivoRepositoryBD(repo_map, repo_cambios);
+        ConfiguracionFlujoDatos flujocon = new ConfiguracionFlujoDatos(repo_map, repo_bd);
+
+        ManejoTemporales Manejoregistros = new ManejoTemporales(repo_map, repo_cambios);
+        ScannerIpServicio servicioip = new ScannerIpServicio(repo_map, config ,Manejoregistros );
+        ScannerMacServicio servicioMac = new ScannerMacServicio(repo_map, config);
+        
+
+        Scaneos scan = new Scaneos();
+
+        ScannerMacControlador MacScanner = new ScannerMacControlador(servicioMac);
+        EscanerIpControlador ipscanner = new EscanerIpControlador(servicioip);
+
+        boolean respuesta_menu = true;
+        boolean respuestam1 = false;
+        boolean respuestam2 = false;
+        do {
+            System.out.println("");
+            System.out.println("-----configuracion de conexion a la  base de datos ---------");
+            System.out.println(" 1 : hacer coneccion con la base de datos  ");
+            System.out.println(" 2 : no hacer coneccion con la base de datos  ");
+            System.out.println(" 0 : salir de la aplicacion ");
+            System.out.println(" DEBE  SELECCIONAR UNA OPCION PARA PODER CONTINUAR ");
+            System.out.println("diguita una respuesta");
+            int answ = verficador.manejoErrores();
+
+            switch (answ) {
+
+                case 1 -> {
+                    if (flujocon.flujocarga()) {
+
+                        System.out.println("los datos han sido cargados correctamente de la base de datos");
+                    } else {
+                        System.out.println("no se han encontardo datos en la base de datos");
+                    }
+
+                    respuesta_menu = false;
+                    respuestam1 = true;
+                    break;
+                }
+                case 2 -> {
+
+                    respuesta_menu = false;
+                    respuestam2 = true;
+                    break;
+                }
+
+                case 0 -> {
+                    respuesta_menu = false;
+                    break;
+                }
+
+                default -> {
+
+                    System.out.println(" la opcion selecionada no esta disponible ");
+                    break;
+                }
+
+            }
+
+        } while (respuesta_menu);
+
+        /* menu del porgrama con coenccion a la base de datos */
+        while (respuestam1) {
+
+            System.out.println("-----menu----------");
+            System.out.println(" 1 : Scaneo de ip  ");
+            System.out.println(" 2 : scaneo de mac ");
+            System.out.println(" 3 : mostrar el scaneo de mac ");
+            System.out.println(" 4 : mostrar el scaneo de ip");
+            System.out.println(" 5 : eliminar todos registros de la base datos  ");
+            System.out.println(" 6 : actulizar cambios en la base de datos ");
+            System.out.println(" 0 : salir ");
+
+            System.out.println("diguita una respuesta");
+            int answ = verficador.manejoErrores();
+
+            switch (answ) {
+
+                case 1 -> {
+
+                    ipscanner.redEscaneoip();
+
+                    break;
+                }
+                case 2 -> {
+                    if (ipscanner.isEscaneoIpRealizado()) {
+                        MacScanner.RedScaneoMac();
+                        Manejoregistros.manejo_temporales();
+                        Manejoregistros.ManejarGuardar();
+                    } else {
+                        System.out.println("primero debes realizar un escaneo de IP para cargar la tabla arp");
+                    }
+
+                    break;
+                }
+
+                case 3 -> {
+
+                    MacScanner.mostrarDispositivos();
+
+                    break;
+                }
+
+                case 4 -> {
+                    ipscanner.mostrarDispositivos();
+                    break;
+                }
+                case 5 -> {
+                    repo_bd.borrarTodos();
+                    repo_bd.borrarTodos();
+                    repo_map.obtenertodos().clear();
+                    repo_map.limpiarMacs();
+                    repo_cambios.limpiar();
+                    System.out.println("Registros eliminados de la base de datos y de la memoria");
+                    break;
+                }
+                case 6 -> {
+
+                    if (ipscanner.isEscaneoIpRealizado() && MacScanner.isMacscannerRealizado()) {
+                        repo_bd.sincronizar();
+
+                    }
+
+                    break;
+                }
+
+                case 0 -> {
+                    respuestam1 = false;
+                    break;
+                }
+
+                default -> {
+
+                    System.out.println(" la opcion selecionada no esta disponible ");
+                    break;
+                }
+
+            }
+
+        }
+        /* menu del porgrama sin coenccion a la base de datos */
+
+        while (respuestam2) {
+
+            System.out.println("-----menu----------");
+            System.out.println(" 1 : Scaneo de ip  ");
+            System.out.println(" 2 : scaneo de mac ");
+            System.out.println(" 3 : mostrar el scaneo de mac ");
+            System.out.println(" 4 : mostrar el scaneo de ip");
+            System.out.println(" 5 : mostara todos los datos ");
+            System.out.println(" 0 : salir ");
+
+            System.out.println("diguita una respuesta");
+            int answ = verficador.manejoErrores();
+
+            switch (answ) {
+
+                case 1 -> {
+
+                    ipscanner.redEscaneoip();
+                    if (ipscanner.isEscaneoIpRealizado()){
+                        
+                    }
+
+                    break;
+                }
+                case 2 -> {
+                    if (ipscanner.isEscaneoIpRealizado()) {
+                        MacScanner.RedScaneoMac();
+                        if (ipscanner.isEscaneoIpRealizado() && MacScanner.isMacscannerRealizado()) {
+                            Manejoregistros.manejo_temporales();
+                            repo_cambios.limpiar();
+                        }
+                    } else {
+                        System.out.println("primero debes realizar un escaneo de IP para cargar la tabla arp");
+                    }
+                    break;
+                }
+
+                case 3 -> {
+
+                    MacScanner.mostrarDispositivos();
+
+                    break;
+                }
+
+                case 4 -> {
+                    ipscanner.mostrarDispositivos();
+                    break;
+                }
+                case 5 -> {
+                    ipscanner.mostrarDispositivos();
+                    break;
+                }
+
+                case 0 -> {
+                    respuestam2 = false;
+                    break;
+                }
+
+                default -> {
+
+                    System.out.println(" la opcion selecionada no esta disponible ");
+                    break;
+                }
+
+            }
+
+        }
+
+    }
+}
+
+
+// ============================================================
+// FILE: src/main/java/com/bodega/monitorv1/Controlador/EscanerIpControlador.java
+// ============================================================
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package com.bodega.monitorv1.Controlador;
+
+/**
+ *
+ * @author yordin
+ */
+import com.bodega.monitorv1.modelos.Dispositivo;
+import com.bodega.monitorv1.servicio.ScannerIpServicio;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+import java.util.*;
+
+public class EscanerIpControlador implements mostrarDispositivos {
+
+    private boolean escaneoIpRealizado = false;
+
+    private final static Scanner in = new Scanner(System.in);
+
+    private ScannerIpServicio servicio;
+
+    public EscanerIpControlador(ScannerIpServicio servicio) {
+        this.servicio = servicio;
+
+    }
+
+    public EscanerIpControlador(boolean escaneoIpRealizado) {
+
+        this.escaneoIpRealizado = escaneoIpRealizado;
+    }
+
+    public EscanerIpControlador() {
+    }
+
+    public void redEscaneoip() throws IOException, Exception {
+
+        boolean respuesta = servicio.EscaneoIp();
+
+        if (respuesta) {
+
+            System.out.println(" Escaneo finalizado con exito sobre la red : " + servicio.IpDetectada() + "/ " + servicio.prefijos());
+            escaneoIpRealizado = true;
+
+        } else {
+            System.out.println(" error al intentar esacnnear ip no valida  ");
+
+        }
+
+    }
+
+    @Override
+    public void mostrarDispositivos() {
+
+        Map<Integer, Dispositivo> dispositivos = servicio.obtenerDispositivos();
+
+        if (dispositivos.isEmpty()) {
+            System.out.println("no se ha hecho ningun escaneo de IP ");
+            return;
+        }
+
+        for (Map.Entry<Integer, Dispositivo> u : dispositivos.entrySet()) {
+
+            Integer id = u.getKey();
+            Dispositivo dispositivo = u.getValue();
+            LocalDateTime hora = dispositivo.getFechaDeteccion();
+            DateTimeFormatter formato
+                    = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+
+            System.out.println(
+                    "ID: " + id
+                    + " | IP: " + dispositivo.getIp()
+                    + " | FECHA " + hora.format(formato)
+            );
+        }
+    }
+
+    public boolean isEscaneoIpRealizado() {
+        return escaneoIpRealizado;
+    }
+
+    public void setEscaneoIpRealizado(boolean escaneoIpRealizado) {
+        this.escaneoIpRealizado = escaneoIpRealizado;
+    }
+
+}
+
+
+// ============================================================
+// FILE: src/main/java/com/bodega/monitorv1/Controlador/ScannerMacControlador.java
+// ============================================================
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package com.bodega.monitorv1.Controlador;
+
+import com.bodega.monitorv1.modelos.Dispositivo;
+import com.bodega.monitorv1.repository.DispositivoRepository;
+import com.bodega.monitorv1.servicio.ScannerMacServicio;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
+
+/**
+ *
+ * @author yordin
+ */
+public class ScannerMacControlador implements mostrarDispositivos {
+
+    private ScannerMacServicio servicio;
+    
+    private boolean MacscannerRealizado = false;
+   
+
+    public ScannerMacControlador(ScannerMacServicio servicio) {
+        this.servicio = servicio;
+
+    }
+    
+    public ScannerMacControlador (boolean MacscannerRealizado){
+        this.MacscannerRealizado =  MacscannerRealizado;
+    
+    }
+    
+    public void  RedScaneoMac() throws Exception {
+
+        boolean p = servicio.escanearMacs();
+
+        if (p) {
+            
+            System.out.println(" Scaneo de mac relaizado con exito ");
+            MacscannerRealizado = true ;
+        }
+
+    }
+
+    @Override
+    public void mostrarDispositivos() {
+
+        Map<Integer, Dispositivo> dispositivos = servicio.obtenerDispositivos();
+                if (dispositivos.isEmpty()){
+        System.out.println("no se ha hecho nigun escaneo de Mac ");
+        return;
+        }
+
+        for (Map.Entry<Integer, Dispositivo> u : dispositivos.entrySet()) {
+
+            Integer id = u.getKey();
+            Dispositivo dispositivo = u.getValue();
+            String mac = dispositivo.getMac();
+             LocalDateTime hora =  dispositivo.getFechaDeteccion();
+             DateTimeFormatter formato
+                    = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+
+            System.out.println(
+                    "ID: " + id
+                    + " | IP: " + dispositivo.getIp()
+                    + " MAC: " + mac
+                     +
+                            " | FECHA " + hora.format(formato)
+            );
+        }
+        
+    }
+
+    public boolean isMacscannerRealizado() {
+        return MacscannerRealizado;
+    }
+
+    public void setMacscannerRealizado(boolean MacscannerRealizado) {
+        this.MacscannerRealizado = MacscannerRealizado;
+    }
+
+}
+
+
+// ============================================================
+// FILE: src/main/java/com/bodega/monitorv1/Controlador/mostrarDispositivos.java
+// ============================================================
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Interface.java to edit this template
+ */
+package com.bodega.monitorv1.Controlador;
+
+/**
+ *
+ * @author yordi
+ */
+public interface mostrarDispositivos {
+
+    void mostrarDispositivos();
+
+}
+
+
+// ============================================================
+// FILE: src/main/java/com/bodega/monitorv1/configuracion/ConexionBD.java
+// ============================================================
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package com.bodega.monitorv1.configuracion;
+
+/**
+ *
+ * @author yordi
+ */
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+public class ConexionBD {
+
+    private static final String URL = "jdbc:mysql://localhost:3306/monitor";
+    private static final String USUARIO = "root";
+    private static final String PASSWORD = "";
+  
+
+    public static Connection conectar() throws SQLException {
+
+        return DriverManager.getConnection(URL, USUARIO, PASSWORD);
+    }
+}
+
+
+// ============================================================
+// FILE: src/main/java/com/bodega/monitorv1/configuracion/ConfiguracionFlujoDatos.java
+// ============================================================
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package com.bodega.monitorv1.configuracion;
+
+import com.bodega.monitorv1.modelos.Dispositivo;
+import com.bodega.monitorv1.persintencia.DispositivoRepositoryBD;
+import com.bodega.monitorv1.repository.DispositivoRepository;
+import java.sql.SQLException;
+import java.util.Map;
+
+/**
+ *
+ * @author yordin
+ */
+public class ConfiguracionFlujoDatos {
+
+    private final DispositivoRepository repo;
+    private final DispositivoRepositoryBD repobd;
+    
+
+    public ConfiguracionFlujoDatos(DispositivoRepository repo, DispositivoRepositoryBD repobd) {
+        this.repo = repo;
+        this.repobd = repobd;
+    }
+
+    public boolean flujocarga() throws SQLException {
+
+        Map<Integer, Dispositivo> dispositivos = repo.obtenertodos();
+        if (dispositivos.isEmpty()) {
+            if (repobd.hayDispositivos()) {
+                repobd.cargar();
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        return false;
+
+    }
+}
+
+
+// ============================================================
+// FILE: src/main/java/com/bodega/monitorv1/configuracion/ConfiguracionRed.java
+// ============================================================
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+/**
+ *
+ * @author yordi
+ */
+package com.bodega.monitorv1.configuracion;
+
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import org.pcap4j.core.PcapAddress;
+import org.pcap4j.core.PcapNetworkInterface;
+import org.pcap4j.core.Pcaps;
+
+public class ConfiguracionRed {
+
+    private String ipInterface;
+    private String red;
+    private int prefijo;
+    private int utilizables;
+
+    public PcapNetworkInterface obtenerInterfaz() throws Exception {
+
+        for (PcapNetworkInterface interfaz : Pcaps.findAllDevs()) {
+
+            if (interfaz.isLoopBack()) {
+                continue;
+            }
+
+            for (PcapAddress direccion : interfaz.getAddresses()) {
+
+                InetAddress ip = direccion.getAddress();
+                InetAddress mascara = direccion.getNetmask();
+
+                if (ip instanceof Inet4Address ipv4
+                        && mascara instanceof Inet4Address mascaraIPv4) {
+
+                    String valor = ipv4.getHostAddress();
+
+                    if (valor.startsWith("169.254.")) {
+                        continue;
+                    }
+
+                    int prefijoCalculado = calcularPrefijo(mascaraIPv4);
+
+                    if (prefijoCalculado == 24) {
+                        
+                        ipInterface = valor;
+                        prefijo = prefijoCalculado;
+
+                        red = calcularRed(ipv4, mascaraIPv4);
+
+                        return interfaz;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private int calcularPrefijo(Inet4Address mascara) {
+
+        byte[] bytes = mascara.getAddress();
+
+        int prefijo = 0;
+
+        for (byte b : bytes) {
+
+            int valor = b & 0xFF;
+
+            prefijo += Integer.bitCount(valor);
+        }
+
+        return prefijo;
+    }
+
+    private String calcularRed(Inet4Address ip, Inet4Address mascara) {
+
+        byte[] ipBytes = ip.getAddress();
+        byte[] maskBytes = mascara.getAddress();
+
+        byte[] redBytes = new byte[4];
+
+        for (int i = 0; i < 4; i++) {
+
+            redBytes[i] = (byte) (ipBytes[i] & maskBytes[i]);
+        }
+
+        return (redBytes[0] & 0xFF) + "."
+                + (redBytes[1] & 0xFF) + "."
+                + (redBytes[2] & 0xFF) + "."
+                + (redBytes[3] & 0xFF);
+    }
+
+    public int IpsUtilizables() {
+
+        int bitsHost = 32 - prefijo;
+
+        int temp = (int) Math.pow(2, bitsHost);
+
+        utilizables = temp - 2;
+
+        return utilizables;
+    }
+    
+    public String getBaseEscaneo() {
+    String[] partes = red.split("\\.");
+
+    return partes[0] + "."
+            + partes[1] + "."
+            + partes[2] + ".";
+}
+
+    public int getIpsUtilizables() {
+        return utilizables;
+    }
+
+    public String getIpInterface() {
+        return ipInterface;
+    }
+
+    public String getRed() {
+        return red;
+    }
+
+    public int getPrefijo() {
+        return prefijo;
+    }
+}
+
+
+// ============================================================
+// FILE: src/main/java/com/bodega/monitorv1/configuracion/CambiosPendientes.java
+// ============================================================
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package com.bodega.monitorv1.configuracion;
+
+import com.bodega.monitorv1.modelos.Dispositivo;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ *
+ * @author yordi
+ */
+public class CambiosPendientes {
+
+    private Map<Integer, Dispositivo> dispositivosParaActualizar;
+    private Map<Integer, Dispositivo> dispositivosParaGuardar;
+    private Set<Integer> idsParaEliminar;
+
+    public CambiosPendientes() {
+
+        this.idsParaEliminar = new HashSet<>();
+        this.dispositivosParaActualizar = new HashMap<>();
+        this.dispositivosParaGuardar = new HashMap<>();
+    }
+
+    public void agregarEliminacion(Integer id) {
+        idsParaEliminar.add(id);
+    }
+
+    public void agregarActualizacion(Dispositivo dispositivo) {
+        dispositivosParaActualizar.put(dispositivo.getId(), dispositivo);
+    }
+
+    public void agregarGuardar(Dispositivo dispositivo) {
+        dispositivosParaGuardar.put(dispositivo.getId(), dispositivo);
+    }
+
+    public Set<Integer> obtenerIdsParaEliminar() {
+        return idsParaEliminar;
+    }
+
+    public Map<Integer, Dispositivo> obtenerDispositivosParaActualizar() {
+        return dispositivosParaActualizar;
+    }
+
+    public Map<Integer, Dispositivo> obtenerDispositivosParaGuardar() {
+        return dispositivosParaGuardar;
+    }
+    
+    public void EliminarGuardar(int id ){
+      
+        dispositivosParaGuardar.remove(id);
+    
+    }
+
+    public void limpiar() {
+        idsParaEliminar.clear();
+        dispositivosParaActualizar.clear();
+        dispositivosParaGuardar.clear();
+    }
+
+}
+
+
+// ============================================================
+// FILE: src/main/java/com/bodega/monitorv1/configuracion/ManejoTemporales.java
+// ============================================================
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package com.bodega.monitorv1.configuracion;
+
+import com.bodega.monitorv1.modelos.Dispositivo;
+import com.bodega.monitorv1.repository.DispositivoRepository;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+
+/**
+ *
+ * @author yordin
+ */
+public class ManejoTemporales {
+
+    private DispositivoRepository repo;
+    private CambiosPendientes cambios;
+    private Set<Integer> IDS;
+
+    public ManejoTemporales(DispositivoRepository repo, CambiosPendientes cambios) {
+        this.cambios = cambios;
+        this.repo = repo;
+        this.IDS = new HashSet();
+    }
+
+    public boolean manejo_temporales() {
+
+        Map<Integer, Dispositivo> dispositivos = repo.obtenertodos();
+        for (var dispositivo : dispositivos.entrySet()) {
+
+            String mac = dispositivo.getValue().getMac();
+
+            List<Integer> macs = repo.obtenerIdsPorMac(mac);
+
+            if (macs == null || macs.size() < 2) {
+                continue;
+            }
+
+            for (int i = 0; i < macs.size() - 1; i++) {
+
+                for (int j = i + 1; j < macs.size(); j++) {
+
+                    Integer id1 = macs.get(i);
+                    Integer id2 = macs.get(j);
+
+                    if (id1.equals(id2)) {
+                        continue;
+                    }
+
+                    Dispositivo d1 = dispositivos.get(id1);
+                    Dispositivo d2 = dispositivos.get(id2);
+
+                    if (d1 == null || d2 == null) {
+                        continue;
+                    }
+
+                    LocalDateTime fecha1 = d1.getFechaDeteccion();
+                    LocalDateTime fecha2 = d2.getFechaDeteccion();
+
+                    if (fecha1.isBefore(fecha2)) {
+
+                        Dispositivo oficial = d1;
+                        Dispositivo temporal = d2;
+
+                        oficial = Actualizar(oficial, temporal);
+
+                        cambios.agregarEliminacion(temporal.getId());
+                        cambios.agregarActualizacion(oficial);
+                        cambios.agregarGuardar(oficial);
+
+                    }
+
+                    if (fecha2.isBefore(fecha1)) {
+
+                        Dispositivo oficial = d2;
+                        Dispositivo temporal = d1;
+
+                        oficial = Actualizar(oficial, temporal);
+                        cambios.agregarEliminacion(temporal.getId());
+                        cambios.agregarActualizacion(oficial);
+                        cambios.agregarGuardar(oficial);
+
+                    }
+
+                }
+
+            }
+
+        }
+
+        for (Integer id : cambios.obtenerIdsParaEliminar()) {
+            repo.BorrarId(id);
+        }
+
+        Map<Integer, Dispositivo> registro = cambios.obtenerDispositivosParaActualizar();
+
+        for (var registros : registro.entrySet()) {
+
+            int id = registros.getValue().getId();
+
+            Dispositivo oficial = registros.getValue();
+
+            Dispositivo d = repo.obtenerDispositivoPorId(id);
+
+            d.setIp(oficial.getIp());
+            d.setFechaDeteccion(oficial.getFechaDeteccion());
+
+        }
+
+        return true;
+    }
+
+    private Dispositivo Actualizar(Dispositivo oficial, Dispositivo Temporal) {
+
+        oficial.setIp(Temporal.getIp());
+        oficial.setFechaDeteccion(Temporal.getFechaDeteccion());
+
+        return oficial;
+    }
+
+    public void ManejarGuardar() {
+
+        Map<Integer, Dispositivo> dispositivos = repo.obtenertodos();
+
+        for (Dispositivo d : dispositivos.values()) {
+
+            cambios.agregarGuardar(d);
+
+        }
+
+    }
+
+    public int generarIdLibre(int id) {
+
+        if (repo.CantidadDispositivos() >= 255) {
+            throw new IllegalStateException("No quedan IDs disponibles");
+        }
+
+        if (repo.obtenerDispositivoPorId(id) == null) {
+            return id;
+        }
+
+        Random r = new Random();
+
+        while (true) {
+            int nuevoId = r.nextInt(255) + 1;
+
+            if (repo.obtenerDispositivoPorId(nuevoId) == null) {
+                return nuevoId;
+            }
+        }
+    }
+}
+
+
+// ============================================================
+// FILE: src/main/java/com/bodega/monitorv1/configuracion/DatosEntrada.java
+// ============================================================
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package com.bodega.monitorv1.configuracion;
+
+/**
+ *
+ * @author yordi
+ */
+import java.util.Scanner;
+
+public class DatosEntrada {
+
+    private final Scanner sc = new Scanner(System.in);
+
+    public DatosEntrada() {
+    }
+    
+
+    public int manejoErrores() {
+      
+
+        while (true) {
+            try {
+                System.out.print("Digite un numero entero: ");
+                String entrada = sc.nextLine();
+                return Integer.parseInt(entrada.trim());
+            } catch (NumberFormatException e) {
+                System.out.println("Error: debe digitar un numero entero.");
+            }
+        }
+    }
+
+}
+
+
+// ============================================================
+// FILE: src/main/java/com/bodega/monitorv1/modelos/Conexion.java
+// ============================================================
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package com.bodega.monitorv1.modelos;
+
+/**
+ *
+ * @author yordin
+ */
+public class Conexion {
+    
+}
+
+
+// ============================================================
+// FILE: src/main/java/com/bodega/monitorv1/modelos/Dispositivo.java
+// ============================================================
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+
+package com.bodega.monitorv1.modelos;
+import java.time.LocalDateTime;
+
+/**
+ *
+ * @author Yordin
+ */
+public class Dispositivo {
+
+    private String ip;
+    private String mac;
+    private int id;
+    private LocalDateTime fechaDeteccion;
+    private String sobrenombre ;
+
+    public Dispositivo() {
+    }
+
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getMac() {
+        return mac;
+    }
+
+    public void setMac(String mac) {
+        this.mac = mac;
+    }
+
+    public LocalDateTime getFechaDeteccion() {
+        return fechaDeteccion;
+    }
+
+    public void setFechaDeteccion(LocalDateTime fechaDeteccion) {
+        this.fechaDeteccion = fechaDeteccion;
+    }
+
+    public String getSobrenombre() {
+        return sobrenombre;
+    }
+
+    public void setSobrenombre(String sobrenombre) {
+        this.sobrenombre = sobrenombre;
+    }
+
+    @Override
+    public String toString() {
+        return "Dispositivo{" + "ip=" + ip + ", mac=" + mac + ", id=" + id + ", fechaDeteccion=" + fechaDeteccion + ", sobrenombre=" + sobrenombre + '}';
+    }
+}
+
+
+// ============================================================
+// FILE: src/main/java/com/bodega/monitorv1/modelos/ClaveConexion.java
+// ============================================================
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package com.bodega.monitorv1.modelos;
+
+/**
+ *
+ * @author yordi
+ */
+public class ClaveConexion {
+    
+}
+
+
+// ============================================================
+// FILE: src/main/java/com/bodega/monitorv1/persintencia/DispositivoRepositoryBD.java
+// ============================================================
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package com.bodega.monitorv1.persintencia;
+
+/**
+ *
+ * @author yordin
+ */
+import com.bodega.monitorv1.configuracion.CambiosPendientes;
+import com.bodega.monitorv1.configuracion.ConexionBD;
+import com.bodega.monitorv1.modelos.Dispositivo;
+import com.bodega.monitorv1.repository.DispositivoRepository;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.util.Map;
+
+public class DispositivoRepositoryBD {
+
+    private DispositivoRepository repo;
+    private CambiosPendientes cambios;
+
+    public DispositivoRepositoryBD(DispositivoRepository repo, CambiosPendientes cambios) {
+        this.repo = repo;
+        this.cambios = cambios;
+    }
+
+    public void guardar(Dispositivo d) throws SQLException {
+
+        if (existeId(d.getId())) {
+
+            return;
+        }
+
+        String sql = """
+            INSERT INTO dispositivos (id, ip, mac, fecha_deteccion)
+            VALUES (?, ?, ?, ?)
+            """;
+
+        try (Connection conexion = ConexionBD.conectar(); PreparedStatement ps = conexion.prepareStatement(sql)) {
+
+            ps.setInt(1, d.getId());
+            ps.setString(2, d.getIp());
+            ps.setString(3, d.getMac());
+            ps.setObject(4, d.getFechaDeteccion());
+
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+        }
+    }
+
+    public void borrarTodos() throws SQLException {
+        String sql = "DELETE FROM dispositivos";
+
+        try (Connection conexion = ConexionBD.conectar(); PreparedStatement sentencia = conexion.prepareStatement(sql)) {
+
+            sentencia.executeUpdate();
+        }
+    }
+
+    public void cargar() throws SQLException {
+
+        String sql = "SELECT id, ip, mac, fecha_deteccion FROM dispositivos";
+
+        try (Connection conexion = ConexionBD.conectar(); PreparedStatement sentencia = conexion.prepareStatement(sql); ResultSet resultado = sentencia.executeQuery()) {
+
+            while (resultado.next()) {
+
+                int id = resultado.getInt("id");
+                String ip = resultado.getString("ip");
+                String mac = resultado.getString("mac");
+                LocalDateTime fecha = resultado.getObject("fecha_deteccion", LocalDateTime.class);
+
+                Dispositivo dispositivo = new Dispositivo();
+                dispositivo.setId(id);
+                dispositivo.setIp(ip);
+                dispositivo.setMac(mac);
+                dispositivo.setFechaDeteccion(fecha);
+
+                repo.guardarmap(id, dispositivo);
+                repo.guardarMacs(dispositivo);
+            }
+        }
+    }
+
+    public void actualizar(Dispositivo d) {
+
+        String sql = """
+        UPDATE dispositivos
+        SET ip = ?, mac = ?, fecha_deteccion = ?
+        WHERE id = ?
+        """;
+
+        try (Connection conexion = ConexionBD.conectar(); PreparedStatement ps = conexion.prepareStatement(sql)) {
+
+            ps.setString(1, d.getIp());
+            ps.setString(2, d.getMac());
+            ps.setObject(3, d.getFechaDeteccion());
+            ps.setInt(4, d.getId());
+
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+        }
+
+    }
+
+    public void eliminar(int id) throws SQLException {
+
+        if (!existeId(id)) {
+            return;
+        }
+
+        String sql = """
+        DELETE FROM dispositivos
+        WHERE id = ?
+        """;
+
+        try (Connection conexion = ConexionBD.conectar(); PreparedStatement ps = conexion.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+        }
+    }
+
+    public boolean existeId(int id) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM dispositivos WHERE id = ?";
+
+        try (Connection conexion = ConexionBD.conectar(); PreparedStatement sentencia = conexion.prepareStatement(sql)) {
+
+            sentencia.setInt(1, id);
+
+            ResultSet resultado = sentencia.executeQuery();
+            resultado.next();
+
+            int cantidad = resultado.getInt(1);
+
+            return cantidad > 0;
+        }
+    }
+
+    public boolean hayDispositivos() throws SQLException {
+        String sql = "SELECT COUNT(*)  FROM dispositivos";
+
+        try (Connection conexion = ConexionBD.conectar(); PreparedStatement sentencia = conexion.prepareStatement(sql); ResultSet resultado = sentencia.executeQuery()) {
+
+            resultado.next();
+
+            int cantidad = resultado.getInt(1);
+
+            return cantidad > 0;
+        }
+    }
+
+    public void limpiarDispositivosSinMac() {
+
+        Map<Integer, Dispositivo> dispositivos = repo.obtenertodos();
+
+        for (var entrada : dispositivos.entrySet()) {
+            Dispositivo dispositivo = entrada.getValue();
+
+            if (dispositivo.getMac() == null || dispositivo.getMac().isEmpty()) {
+                int id = dispositivo.getId();
+                cambios.agregarEliminacion(id); 
+            }
+        }
+
+    }
+
+    public void sincronizar() throws SQLException {
+
+        limpiarDispositivosSinMac();
+
+        System.out.println("Pendientes para guardar: "
+                + cambios.obtenerDispositivosParaGuardar().size());
+
+        for (Dispositivo d : cambios.obtenerDispositivosParaGuardar().values()) {
+            System.out.println("Intentando guardar ID: " + d.getId());
+            guardar(d);
+        }
+
+        for (Dispositivo d : cambios.obtenerDispositivosParaActualizar().values()) {
+            actualizar(d);
+        }
+
+        for (Integer id : cambios.obtenerIdsParaEliminar()) {
+            eliminar(id);
+        }
+
+        cambios.limpiar();
+    }
+
+    public Map<Integer, Dispositivo> obtenerDispositivos() {
+        return repo.obtenertodos();
+    }
+
+}
+
+
+// ============================================================
+// FILE: src/main/java/com/bodega/monitorv1/repository/DispositivoRepository.java
+// ============================================================
+package com.bodega.monitorv1.repository;
+
+import com.bodega.monitorv1.modelos.Dispositivo;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+/**
+ *
+ * @author yordin
+ */
+public class DispositivoRepository {
+
+    private final Map<Integer, Dispositivo> dispositivos;
+    private final Map<String, List<Integer>> Macs;
+
+    public DispositivoRepository() {
+        this.dispositivos = new HashMap<>();
+        this.Macs = new HashMap<>();
+    }
+
+    public void guardarmap(Integer clave, Dispositivo valor) {
+
+        dispositivos.put(clave, valor);
+
+    }
+
+    public Map<Integer, Dispositivo> obtenertodos() {
+
+        return dispositivos;
+    }
+
+    public void guardarMacs(Dispositivo dispositivo) {
+
+        Macs.computeIfAbsent(dispositivo.getMac(), clave -> new ArrayList<>()).add(dispositivo.getId());
+    }
+
+    public void BorrarId(int clave) {
+
+        dispositivos.remove(clave);
+    }
+
+    public Map<String, List<Integer>> obtenertodosMac() {
+
+        return Macs;
+    }
+
+    public List<Integer> obtenerIdsPorMac(String mac) {
+        return Macs.getOrDefault(mac, new ArrayList<>());
+    }
+
+    public Map< Integer, Dispositivo> obtenerOrdenados() {
+
+        return new TreeMap<>(dispositivos);
+    }
+    
+    public void limpiarMacs(){
+        
+        Macs.clear();
+    }
+    
+    public Dispositivo obtenerDispositivoPorId( int id ){
+        
+     Dispositivo dispositivo =  dispositivos.get(id);
+        
+     return dispositivo;
+    }
+
+    public int CantidadDispositivos () {
+      
+      return dispositivos.size();
+    }
+}
+
+
+// ============================================================
+// FILE: src/main/java/com/bodega/monitorv1/repository/Repository.java
+// ============================================================
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package com.bodega.monitorv1.repository;
+
+import com.bodega.monitorv1.modelos.Dispositivo;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ *
+ * @author Yordin
+ */
+public class Repository {
+
+    public Map<Integer, Dispositivo> dispositivos;
+    
+
+    public Repository() {
+        this.dispositivos = new Map<>() {
+            @Override
+            public int size() {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public boolean isEmpty() {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public boolean containsKey(Object key) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public boolean containsValue(Object value) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public Dispositivo get(Object key) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public Dispositivo put(Integer key, Dispositivo value) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public Dispositivo remove(Object key) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public void putAll(Map<? extends Integer, ? extends Dispositivo> m) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public void clear() {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public Set<Integer> keySet() {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public Collection<Dispositivo> values() {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public Set<Map.Entry<Integer, Dispositivo>> entrySet() {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+        };
+
+    }
+    
+}
+
+
+// ============================================================
+// FILE: src/main/java/com/bodega/monitorv1/servicio/Scaneos.java
+// ============================================================
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package com.bodega.monitorv1.servicio;
+
+/**
+ *
+ * @author Yordin
+ */
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import com.bodega.monitorv1.modelos.Dispositivo;
+import com.bodega.monitorv1.repository.Repository;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.io.IOException;
+import java.net.Inet4Address;
+import java.util.Scanner;
+
+public class Scaneos {
+
+    private BufferedReader br;
+    private boolean escaneo_redip = false;
+    private boolean escaneo_mac = false;
+    private static final Scanner in = new Scanner(System.in);
+    private Repository lista = new Repository();
+
+    public void Scaneoip() throws UnknownHostException, IOException {
+        /* la variable estado es para indicar a la funcion si el escaneo esta bien realizado 
+        o no y lo manda a la varible global escaneo_redip*/
+        boolean estado = true;
+        System.out.println(" digite la red a la que se desea escanear  ejm :192.168.1.");
+        String red = in.nextLine();
+
+        for (int i = 1; i < 256; i++) {
+
+            String objetivo = red + i;
+
+            InetAddress dirreccion = InetAddress.getByName(objetivo);
+
+            if (dirreccion instanceof Inet4Address ipv4) {
+
+                boolean respuesta = dirreccion.isReachable(500);
+
+                if (respuesta) {
+                    System.out.println(" encontrado activo encontrado" + ipv4.getHostAddress());
+                    Dispositivo nuevo = new Dispositivo();
+                    nuevo.setIp(ipv4.getHostAddress());
+                    nuevo.setId(i);
+
+                    lista.dispositivos.put(i, nuevo);
+                }
+
+            } else {
+                System.out.println("No es una dirección IPv4.");
+                estado = false;
+
+            }
+
+            escaneo_redip = estado;
+        }
+
+    }
+
+    public void mostrar_ip() {
+        if (!escaneo_redip) {
+            System.out.println("priemro debes realizar el esaceno de ip ");
+            return;
+        }
+        for (var entry : lista.dispositivos.entrySet()) {
+
+            Integer id = entry.getKey();
+            Dispositivo dispositivo = entry.getValue();
+
+            System.out.println("ID: " + id + " | IP: " + dispositivo.getIp());
+        }
+
+    }
+
+    public void Scaneos_mac() throws IOException {
+
+        if (!escaneo_redip) {
+            boolean cont = true;
+            do {
+
+                System.out.println(" el escaneo de la red ip no se a realizado"
+                        + "la tabla arp no esta actulizada deseas hacer un escaneo de ip primero ? si:1  no:0 ");
+                int respuesta = in.nextInt();
+
+                switch (respuesta) {
+
+                    case 1 -> {
+                        System.out.println(" rediriguiendo al esacaneo de ip");
+                        Scaneoip();
+                        break;
+                    }
+
+                    case 0 -> {
+                        System.out.println("deseas continuar y hacer el escaneo de arp o salir  seguir:1  salir:0");
+                        int respuestai = in.nextInt();
+
+                        if (respuestai == 0) {
+                            return;
+
+                        } else {
+                            cont = false;
+                        }
+                        break;
+                    }
+
+                    default -> {
+                        System.out.println(" opcion no disponible ");
+                        break;
+                    }
+                }
+            } while (cont);
+
+        }
+
+        ProcessBuilder pb = new ProcessBuilder("arp", "-a");
+
+        Process proceso = pb.start();
+
+        br = new BufferedReader(
+                new InputStreamReader(proceso.getInputStream())
+        );
+
+        System.out.println(" escaneo listo");
+        escaneo_mac = true;
+
+    }
+
+    public void Mostrar_mac() throws IOException {
+        if (!escaneo_mac) {
+            System.out.println(" priemro debes relaizar el escaneo de mac ");
+            return;
+        }
+        String linea;
+        while ((linea = br.readLine()) != null) {
+            System.out.println(linea);
+        }
+    }
+
+}
+
+
+// ============================================================
+// FILE: src/main/java/com/bodega/monitorv1/servicio/ScannerIpServicio.java
+// ============================================================
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package com.bodega.monitorv1.servicio;
+
+import com.bodega.monitorv1.Controlador.EscanerIpControlador;
+import com.bodega.monitorv1.configuracion.ConfiguracionRed;
+import com.bodega.monitorv1.configuracion.ManejoTemporales;
+import com.bodega.monitorv1.modelos.Dispositivo;
+import com.bodega.monitorv1.repository.DispositivoRepository;
+import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.time.LocalDateTime;
+import java.util.Map;
+import org.pcap4j.core.PcapNetworkInterface;
+
+public class ScannerIpServicio {
+
+    private DispositivoRepository repo;
+    private ConfiguracionRed config ;
+    private ManejoTemporales Manejo;
+
+    public ScannerIpServicio(DispositivoRepository repo , ConfiguracionRed config , ManejoTemporales Manejo  ) {
+        this.repo = repo;
+        this.config =  config ;
+        this.Manejo= Manejo ;
+
+    }
+
+    public ScannerIpServicio() {
+
+    }
+
+    public boolean EscaneoIp() throws UnknownHostException, IOException, Exception {
+        
+        config.obtenerInterfaz();
+        
+        String red = config.getBaseEscaneo();
+
+        String objetivo;
+
+        for (int i = 1; i < config.IpsUtilizables(); i++) {
+
+            objetivo = red + i;
+            InetAddress dirreccion = InetAddress.getByName(objetivo);
+
+            if (dirreccion instanceof Inet4Address ipv4) {
+
+                boolean respuesta = dirreccion.isReachable(500);
+
+                if (respuesta) {
+                    Dispositivo temporal  = new Dispositivo();
+                    temporal.setIp(ipv4.getHostAddress());
+                    int id = Manejo.generarIdLibre(i);
+                    temporal.setId(id);
+                    
+                    temporal.setSobrenombre(" temporal ");
+                    LocalDateTime hora_detteccion = LocalDateTime.now();
+                    temporal.setFechaDeteccion(hora_detteccion );
+
+                    repo.guardarmap(id ,temporal);
+                }
+
+            } else {
+
+                return false;
+
+            }
+
+        }
+        
+        return true;
+    }
+
+    public Map<Integer, Dispositivo> obtenerDispositivos() {
+        return repo.obtenertodos();
+    }
+    
+    public String IpDetectada(){
+         
+         return config.getRed();
+    }
+    
+    public int prefijos(){
+      
+        return config.getPrefijo();
+    }
+
+}
+
+
+// ============================================================
+// FILE: src/main/java/com/bodega/monitorv1/servicio/ScannerMacServicio.java
+// ============================================================
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package com.bodega.monitorv1.servicio;
+
+import com.bodega.monitorv1.configuracion.ConfiguracionRed;
+import com.bodega.monitorv1.modelos.Dispositivo;
+import com.bodega.monitorv1.repository.DispositivoRepository;
+import java.net.InetAddress;
+import java.util.Map;
+import org.pcap4j.core.PcapHandle;
+import org.pcap4j.core.PcapNetworkInterface;
+import org.pcap4j.packet.ArpPacket;
+import org.pcap4j.packet.EthernetPacket;
+import org.pcap4j.packet.Packet;
+import org.pcap4j.packet.namednumber.ArpHardwareType;
+import org.pcap4j.packet.namednumber.ArpOperation;
+import org.pcap4j.packet.namednumber.EtherType;
+import org.pcap4j.util.LinkLayerAddress;
+import org.pcap4j.util.MacAddress;
+
+/**
+ *
+ * @author yordin
+ */
+public class ScannerMacServicio {
+
+    private DispositivoRepository repo;
+    private ConfiguracionRed config;
+
+    public ScannerMacServicio(DispositivoRepository repo, ConfiguracionRed config) {
+        this.repo = repo;
+        this.config = config;
+    }
+
+    public boolean escanearMacs() throws Exception {
+
+        PcapNetworkInterface interfaz = config.obtenerInterfaz();
+      
+        MacAddress macLocal = null;
+
+        for (LinkLayerAddress direccion : interfaz.getLinkLayerAddresses()) {
+            macLocal = MacAddress.getByAddress(direccion.getAddress());
+            break;
+
+        }
+
+        PcapHandle handle = interfaz.openLive(
+                65536,
+                PcapNetworkInterface.PromiscuousMode.PROMISCUOUS,
+                100
+        );
+
+        Map<Integer, Dispositivo> dispositivos = repo.obtenertodos();
+
+        for (Map.Entry<Integer, Dispositivo> entrada : dispositivos.entrySet()) {
+
+            String ipObjetivo = entrada.getValue().getIp();
+            Dispositivo dispositivo = entrada.getValue();
+
+            InetAddress direccionObjetivo = InetAddress.getByName(ipObjetivo);
+
+            InetAddress direccionLocal
+                    = InetAddress.getByName(config.getIpInterface());
+
+            MacAddress broadcast
+                    = MacAddress.getByName("FF:FF:FF:FF:FF:FF");
+
+            MacAddress macObjetivo
+                    = MacAddress.getByName("00:00:00:00:00:00");
+
+            ArpPacket arp = new ArpPacket.Builder()
+                    .hardwareType(ArpHardwareType.ETHERNET)
+                    .protocolType(EtherType.IPV4)
+                    .hardwareAddrLength((byte) 6)
+                    .protocolAddrLength((byte) 4)
+                    .operation(ArpOperation.REQUEST)
+                    .srcHardwareAddr(macLocal)
+                    .srcProtocolAddr(direccionLocal)
+                    .dstHardwareAddr(macObjetivo)
+                    .dstProtocolAddr(direccionObjetivo)
+                    .build();
+
+            EthernetPacket ethernet = new EthernetPacket.Builder()
+                    .dstAddr(broadcast)
+                    .srcAddr(macLocal)
+                    .type(EtherType.ARP)
+                    .payloadBuilder(arp.getBuilder())
+                    .paddingAtBuild(true)
+                    .build();
+
+            handle.sendPacket(ethernet);
+
+            boolean encontrado = false;
+            long inicio = System.currentTimeMillis();
+
+            while (!encontrado) {
+
+                Packet paquete = handle.getNextPacket();
+
+                if (paquete != null) {
+
+                    ArpPacket respuesta = paquete.get(ArpPacket.class);
+
+                    if (respuesta != null) {
+
+                        InetAddress ipRespuesta
+                                = respuesta.getHeader().getSrcProtocolAddr();
+
+                        if (ipRespuesta.getHostAddress().equals(ipObjetivo)) {
+
+                            MacAddress macEncontrada
+                                    = respuesta.getHeader().getSrcHardwareAddr();
+
+                            String mac_encontrada = macEncontrada.toString();
+
+                            dispositivo.setMac(mac_encontrada);
+
+                            repo.guardarMacs(dispositivo);
+
+                            encontrado = true;
+                        }
+                    }
+                }
+
+                if (System.currentTimeMillis() - inicio >= 2000) {
+
+                    encontrado = true;
+
+                }
+            }
+
+        }
+        return true;
+    }
+
+    public Map<Integer, Dispositivo> obtenerDispositivos() {
+        return repo.obtenertodos();
+    }
+}
